@@ -11,15 +11,14 @@ load("aula-02/data/dados_exercicio.RData")
 ## Dica 2: Na primeira aula vimos uma função do RStudio que permite visualizar o conteúdo de uma variável, mas neste caso 
 ##         quero ver uma saída na Console.
 ### # ####
-
-
+str(acessos_alunos)
 
 ### 2 ###
 ## Quantos elementos a variável acessos_alunos possui? Utilize uma função do R que retorna o tamanho da variável.
 
 ## Dica: Vimos um exemplo no mesmo material sobre estruturas de dados
 ### # ###
-
+paste("A variável 'acessos_alunos' possui ", length(acessos_alunos), " elementos.")
 
 
 ### 3 ###
@@ -30,7 +29,7 @@ load("aula-02/data/dados_exercicio.RData")
 ## Dica 1: Utilize a função paste() para composição do texto que será impresso. 
 ## Dica 2: Vimos exemplos disto nos materiais dos tipos numéricos e das estruturas de dados.
 ### # ###
-
+paste("O aluno alu201830440 realizou ", acessos_alunos$alu201830440, " acessos.")
 
 
 ### 4 ###
@@ -43,13 +42,15 @@ acessos <- unlist(acessos_alunos)
 ## 2. Com uma operação de indexação, crie um outro vetor contendo somente os valores maiores
 ## 3. Determine o tamanho do vetor da operação 2, imprimindo o resultado na Console
 ### # ###
-
+varCompar <- acessos > acessos_alunos$alu201830440
+alunos_com_mais_acessos <- acessos[varCompar]
+paste("Quantidade de alunos com mais acesso que eu: ", length(alunos_com_mais_acessos))
 
 
 ### 5 ###
 ## Combine todas as etapas acima em uma única chamada, sem a criação dos vetores auxiliares
 ### # ###
-
+paste("Quantidade de alunos com mais acesso que eu: ",length(acessos[acessos > acessos_alunos$alu201830440]))
 
 
 ### 6 ###
@@ -58,7 +59,7 @@ acessos <- unlist(acessos_alunos)
 
 ## Dica: Lembre que falamos sobre como o R faz conversões implícitas entre o tipo lógico e tipos numéricos
 ### # ###
-
+paste("Quantidade de alunos com menos acessos que eu: ", sum(acessos < acessos_alunos$alu201830440))
 
 
 ### 7 ###
@@ -71,6 +72,9 @@ acessos <- unlist(acessos_alunos)
 ## Dica: Pode ser mais fácil se iniciar o vetor notas como uma cópia do vetor acessos, modificando os valores conforme as regras
 ## OBSERVAÇÃO :: Não avaliarei participação na forma do enunciado deste exercício. 
 ### # ###
+notas <- unlist(acessos_alunos, use.names = FALSE)
+notas[which(notas > 0 & notas < 10)] <- 1
+notas[which(notas >= 10)] <- 2
 
 
 
@@ -90,6 +94,22 @@ acessos_alunos_e_guest$guest <- NA
 ## Repita as atividades 4, 5, 6, e 7 utilizando o acessos_com_guest no lugar da lista acessos_alunos.
 ## Tome o devido cuidado de sempre criar variáveis com nomes diferentes das já utilizadas! 
 
+# 4
+acessosEx9 <- unlist(acessos_alunos_e_guest)
+varComparEx9 <- acessosEx9 > acessos_alunos_e_guest$alu201830440
+alunos_com_mais_acessosEx9 <- acessosEx9[varComparEx9]
+paste("Quantidade de alunos com mais acesso que eu (incluindo guest): ", length(alunos_com_mais_acessosEx9))
+
+# 5
+paste("Quantidade de alunos com mais acesso que eu (incluindo guest): ",length(acessosEx9[acessosEx9 > acessos_alunos_e_guest$alu201830440]))
+
+# 6
+paste("Quantidade de alunos com menos acessos que eu (incluindo guest): ", sum(acessosEx9 < acessos_alunos_e_guest$alu201830440))
+
+# 7
+notasEx9 <- unlist(acessos_alunos_e_guest, use.names = FALSE)
+notasEx9[which(notasEx9 > 0 & notasEx9 < 10)] <- 1
+notasEx9[which(notasEx9 >= 10)] <- 2
 
 
 ### 10 ###
@@ -97,12 +117,18 @@ acessos_alunos_e_guest$guest <- NA
 
 
 # 1. Houve modificação no número de alunos com mais e com menos acessos que você?
+print("Sim. Aumentou um para mais e um para menos. E usando a função sum retorna NA")
 
 # 2. Como você conclui que o R trata comparações (operações relacionais) entre valores numéricos e NA?
+print("Sempre retorna TRUE")
 
 # 3. Qual o resultado do uso da função sum na presença de NA? O que você conclui sobre a operação de soma de todos os valores de
 #    um vetor na presença de NA?
+print("O resultado é NA. Portanto, não é possível fazer soma dos valores de vetor com NA.")
 
 # 4. Execute o comando abaixo para ler a documentação da função sum e veja se há como modificar a chamada da função sum na presença
 #    de NAs. Teste os exemplos da página de help da função sum.
 help(sum)
+
+print("Sim. Exemplo na linha abaixo.")
+sum(acessosEx9 < acessos_alunos_e_guest$alu201830440, na.rm = TRUE)

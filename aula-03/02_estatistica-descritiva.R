@@ -135,34 +135,37 @@ subset_salarios %>%
 #' 
 #' >> ATIVIDADE
 #' 
-#' Utilizando a função `year`, adicione ao dataset o Ano de Ingresso. A partir desta nova variável, determine o tempo médio de trabalho dos servidores, em nível nacional e por UF. Utilizar a data do campo `DATA_DIPLOMA_INGRESSO_SERVICOPUBLICO`. Nos dois casos, utilizar a combinação das funções `summarise` e `mean`.
+#' Utilizando a função `year`, adicione ao dataset o Ano de Ingresso. 
+#' A partir desta nova variável, determine o tempo médio de trabalho dos servidores, 
+#' em nível nacional e por UF. 
+#' Utilizar a data do campo `DATA_DIPLOMA_INGRESSO_SERVICOPUBLICO`. 
+#' Nos dois casos, utilizar a combinação das funções `summarise` e `mean`.
 #' 
 #' Por fim, determine a média salarial por ano de ingresso.
 #' 
 ## ------------------------------------------------------------------------
 print("Atividade")
 ## Modificar o Dataset para criação de nova variável
-subset_salarios %>%
-  mutate(ANO_INGRESSO = year(DATA_DIPLOMA_INGRESSO_SERVICOPUBLICO)) ->
-  subset_com_ano
+
+subset_com_ano <- subset_salarios %>%
+  mutate(ano_ingresso = year(DATA_DIPLOMA_INGRESSO_SERVICOPUBLICO)) 
 
 ## Determine o tempo médio de trabalho em anos, em nível nacional
 subset_com_ano %>%
-  summarise(MEDIA_TEMPO_TRABALHO = mean(year(today()) - ANO_INGRESSO))
+  summarise(tempo_medio = mean(year(today()) - ano_ingresso))
+
 
 ## Determine o tempo médio de trabalho em anos, por UF
 subset_com_ano %>%
   group_by(UF_EXERCICIO) %>%
-  summarise(MEDIA_TEMPO_TRABALHO = mean(year(today()) - ANO_INGRESSO)) %>%
-  arrange(MEDIA_TEMPO_TRABALHO) %>%
-  View()
+  summarise(tempo_medio = mean(year(today()) - ano_ingresso)) %>%
+  arrange(desc(tempo_medio)) %>% View()
 
 ## Determine a média salarial por ano de ingresso
 subset_com_ano %>%
-  group_by(ANO_INGRESSO) %>%
-  summarise(MEDIA_SALARIAL = mean(REMUNERACAO_REAIS)) %>%
-  arrange(desc(MEDIA_SALARIAL)) %>%
-  View()
+  group_by(ano_ingresso) %>%
+  summarise(media_salarial = mean(REMUNERACAO_REAIS)) %>%
+  arrange(desc(media_salarial))
 
 
 #' >> FIM DA ATIVIDADE
@@ -205,17 +208,28 @@ subset_salarios %>%
 #' 
 #' __Atividade I__
 #' 
-#' Crie um novo dataset contendo a média e a mediana do salário por UF. Adicione uma nova variável determinando, para cada UF, se a média é maior ou menor que a mediana. Ao final, exiba a quantidade de UFs onde a mediana foi maior que a média.
+#' Crie um novo dataset contendo a média e a mediana do salário por UF. 
+#' Adicione uma nova variável determinando, para cada UF, se a média é maior ou menor que a 
+#' mediana. Ao final, exiba a quantidade de UFs onde a mediana foi maior que a média.
 #' 
 ## ------------------------------------------------------------------------
 print("Atividade")
 
-## Código aqui
+subset_com_ano %>%
+  group_by(UF_EXERCICIO) %>%
+  summarise(media_salarial = mean(REMUNERACAO_REAIS),
+            mediana_salario = median(REMUNERACAO_REAIS),
+            medio_maior = media_salarial > mediana_salario) %>%
+  ungroup() %>%
+  count(medio_maior) %>%
+  View()
 
 #' 
 #' __Atividade II__
 #' 
-#' Qual sua justificativa para a quantidade de casos onde a mediana foi maior que a média? Dica: Observe o gráfico que mostra a média e a mediana. Há cauda longa? Em qual direção?
+#' Qual sua justificativa para a quantidade de casos onde a mediana foi maior 
+#' que a média? Dica: Observe o gráfico que mostra a média e a mediana. 
+#' Há cauda longa? Em qual direção?
 #' 
 #' ``` SUA RESPOSTA AQUI ```
 #' 
@@ -303,17 +317,44 @@ subset_salarios %>%
 ## ------------------------------------------------------------------------
 print("Atividade")
 
-## Código aqui
+dois_desvios <- 2 * sd(subset_salarios$REMUNERACAO_REAIS)
+media <- mean(subset_salarios$REMUNERACAO_REAIS)
+dois_desvios_da_media <- media + dois_desvios
+
+subset_salarios %>%
+  filter(REMUNERACAO_REAIS <= dois_desvios_da_media) %>%
+  nrow() -> total_dentro_de_dois_desvios
+
+total_dentro_de_dois_desvios / nrow(subset_salarios)
 
 #' 
 #' __Atividade II__
 #' 
-#' No dataset de salários temos os diferentes cargos ocupados pelos servidores públicos federais. Liste os 10 cargos de __menor coeficiente de variação__ cujo cargo tenha mais que 100 servidores públicos. A lista deve conter, além do cargo e Coeficiente de Variação, a quantidade de servidores, o menor salário, o maior salário, o salário médio e o desvio padrão.
+#' No dataset de salários temos os diferentes cargos ocupados pelos servidores públicos federais. 
+#' Liste os 10 cargos de __menor coeficiente de variação__ cujo cargo tenha mais que 100 
+#' servidores públicos. 
+#' A lista deve conter, além do cargo e Coeficiente de Variação, a quantidade de servidores, o 
+#' menor salário, o maior salário, o salário médio e o desvio padrão.
 #' 
 ## ------------------------------------------------------------------------
 print("Atividade")
 
-## Código aqui
+head(
+  subset_salarios %>%
+    group_by(DESCRICAO_CARGO) %>%
+      summarise(coeficiente_variacao = sd(REMUNERACAO_REAIS)/mean(REMUNERACAO_REAIS),
+              qtd_servidores = n(),
+              menor_salario = min(REMUNERACAO_REAIS),
+              maior_salario = max(REMUNERACAO_REAIS),
+              salario_medio = mean(REMUNERACAO_REAIS),
+              desvio_padrao = sd(REMUNERACAO_REAIS)) %>%
+      filter(qtd_servidores > 100) %>%
+      arrange(coeficiente_variacao) %>%
+    ungroup(),
+  n = 10) %>%
+View()
+
+  
 
 #' 
 #' __Atividade III__
@@ -321,9 +362,24 @@ print("Atividade")
 #' Repita a Atividade II, mas listando aqueles com __maior coeficiente de variação__.
 #' 
 ## ------------------------------------------------------------------------
-print("Atividade")
 
-## Código aqui
+# usando count:
+
+  subset_salarios %>%
+       group_by(DESCRICAO_CARGO) %>%
+        summarise(coeficiente_variacao = sd(REMUNERACAO_REAIS) / mean(REMUNERACAO_REAIS),
+                    qtd_servidores = n(),
+                    menor_salario = min(REMUNERACAO_REAIS),
+                    maior_salario = max(REMUNERACAO_REAIS),
+                    salario_medio = mean(REMUNERACAO_REAIS),
+                    desvio_padrao = sd(REMUNERACAO_REAIS)) %>%
+        filter(qtd_servidores > 100) %>%
+        arrange(desc(coeficiente_variacao)) %>%
+       ungroup() %>%
+  head(10) %>%
+  # poderia usar tail() ordenando de forma crescente
+  View()
+  
 
 #' 
 #' ![](https://mathwithbaddrawings.files.wordpress.com/2016/07/20160712085402_00021.jpg)

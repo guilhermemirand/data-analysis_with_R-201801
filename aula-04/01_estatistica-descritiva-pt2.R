@@ -166,7 +166,9 @@ IQR(subset_salarios$REMUNERACAO_REAIS)
 ## ------------------------------------------------------------------------
 print("Atividade")
 
-## Código aqui
+desvio_absoluto_mediana <- (dam_salario <- median( abs( subset_salarios$REMUNERACAO_REAIS - median( subset_salarios$REMUNERACAO_REAIS ))))
+
+(IQR(subset_salarios$REMUNERACAO_REAIS) / desvio_absoluto_mediana)
 
 #' 
 #' __Atividade II__

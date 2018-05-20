@@ -2,6 +2,8 @@
 
 ## Vamos começar carregando o arquivo de dados preparado para esta aula
 library(tidyverse)
+library(tibble)
+library(lubridate)
 
 salarios <- read_csv("aula-03/data/201802_dados_salarios_servidores.csv.gz")
 
@@ -13,6 +15,13 @@ salarios <- read_csv("aula-03/data/201802_dados_salarios_servidores.csv.gz")
 ## Após criar esta coluna, descarte todos os registros cuja Remuneração Final for menor que R$ 900,00
 ## 
 ### # ####
+
+# Cotação do Dolar: 3,2428
+# Fonte: https://economia.uol.com.br/cotacoes/cambio/dolar-comercial-estados-unidos/?historico
+
+salarios %>%
+  mutate(REMUNERACAO_FINAL = REMUNERACAO_REAIS + (REMUNERACAO_DOLARES * 3.2428)) %>%
+  filter(REMUNERACAO_FINAL >= 900) -> salarios_final
 
 
 ### 2 ####
@@ -26,6 +35,17 @@ salarios %>% count(UF_EXERCICIO) %>% pull(UF_EXERCICIO) -> ufs # EXEMPLO
 ## 
 ### # ####
 
+salarios_final %>%
+  mutate(LOTACAO_DIFERENTE = ORGSUP_LOTACAO != ORGSUP_EXERCICIO) %>%
+  select(DESCRICAO_CARGO, LOTACAO_DIFERENTE) %>%
+  filter(LOTACAO_DIFERENTE) %>%
+  group_by(DESCRICAO_CARGO) %>%
+  summarise(QTD_LOTAC_DIF = n()) %>%
+  ungroup() %>%
+  select(DESCRICAO_CARGO, QTD_LOTAC_DIF) %>%
+  arrange(desc(QTD_LOTAC_DIF)) %>%
+  head(5) %>%
+  pull(DESCRICAO_CARGO) -> cargos_diferente_lotacao
 
 ### 3 ####
 ## 
@@ -49,3 +69,16 @@ salarios %>% filter(DESCRICAO_CARGO %in% c("MINISTRO DE PRIMEIRA CLASSE", "ANALI
 ## 
 ### # ####
 
+salarios_final %>% 
+  filter(DESCRICAO_CARGO %in% cargos_diferente_lotacao) %>%
+  mutate(LOTACAO_DIFERENTE = ORGSUP_LOTACAO != ORGSUP_EXERCICIO) %>%
+  group_by(DESCRICAO_CARGO, LOTACAO_DIFERENTE) %>%
+  summarise(media_sal = mean(REMUNERACAO_FINAL), 
+            desvio_padrao = sd(REMUNERACAO_FINAL),
+            mediana = median(REMUNERACAO_FINAL),
+            desv_abs_mediana = median( abs(REMUNERACAO_FINAL - median(REMUNERACAO_FINAL))),
+            menor = min(REMUNERACAO_FINAL),
+            maior = max(REMUNERACAO_FINAL)) %>%
+  ungroup() %>%
+  select(DESCRICAO_CARGO, LOTACAO_DIFERENTE, media_sal, desvio_padrao, mediana, desv_abs_mediana, menor, maior) %>%
+  View()

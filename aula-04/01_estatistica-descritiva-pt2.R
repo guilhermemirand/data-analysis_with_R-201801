@@ -179,7 +179,21 @@ desvio_absoluto_mediana <- (dam_salario <- median( abs( subset_salarios$REMUNERA
 ## ------------------------------------------------------------------------
 print("Atividade")
 
-## Código aqui
+getDesvioAbsolutoMediana <- function(x) {
+  median(abs(x - median(x)))
+}
+
+library(tibble)
+library(lubridate)
+
+subset_salarios %>%
+  mutate(TEMPO_INGRESSO = year(today()) - year(DATA_DIPLOMA_INGRESSO_SERVICOPUBLICO)) %>%
+  summarise(desv_padrao = sd(TEMPO_INGRESSO),
+            desv_abs_mediana = getDesvioAbsolutoMediana(TEMPO_INGRESSO),
+            iqr = IQR(TEMPO_INGRESSO)) %>%
+  select(desv_padrao, desv_abs_mediana, iqr) %>%
+  View()
+
 
 #' 
 #' >> FIM ATIVIDADE
@@ -239,7 +253,27 @@ cor(x = subset_salarios$REMUNERACAO_REAIS, y = 2018 - year( subset_salarios$DATA
 ## ------------------------------------------------------------------------
 print("Atividade")
 
-## Código aqui
+get_grau_correlacao <- function(x) {
+  if (x <= 0.3) {
+    "Desprezível"
+  } else if (x <= 0.5) {
+    "Fraca"
+  } else if (x <= 0.7) {
+    "Moderada"
+  } else if (x <= 0.9) {
+    "Forte"
+  } else {
+    "Muito forte"
+  }
+}
+
+subset_salarios %>%
+  summarise(CORRELACAO = cor(year(DATA_INGRESSO_ORGAO), year(DATA_DIPLOMA_INGRESSO_SERVICOPUBLICO))) %>%
+  summarise(CORR_POSITIVA = CORRELACAO > 0,
+            GRAU_CORR = get_grau_correlacao(abs(CORRELACAO)))
+
+print("A correlação é positiva: 0.8615495.")
+print("")
 
 #' 
 #' >> FIM ATIVIDADE

@@ -20,6 +20,38 @@ library(lubridate)
 ## 
 ### # ####
 
+# Cotação do Dolar: 3,2428
+# Fonte: https://economia.uol.com.br/cotacoes/cambio/dolar-comercial-estados-unidos/?historico
+
+salarios <- read_csv("aula-03/data/201802_dados_salarios_servidores.csv.gz")
+
+salarios %>%
+  mutate(REMUNERACAO_FINAL = REMUNERACAO_REAIS + (REMUNERACAO_DOLARES * 3.2428)) %>%
+  filter(REMUNERACAO_FINAL >= 900) -> salarios_final
+
+get_grau_correlacao <- function(x) {
+  if (x <= 0.3) {
+    "Desprezível"
+  } else if (x <= 0.5) {
+    "Fraca"
+  } else if (x <= 0.7) {
+    "Moderada"
+  } else if (x <= 0.9) {
+    "Forte"
+  } else {
+    "Muito forte"
+  }
+}
+
+salarios_final %>%
+  group_by(DESCRICAO_CARGO) %>%
+  filter(n() >= 200) %>%
+  summarise(COEFICIENTE_CORRELACAO = cor(year(DATA_INGRESSO_ORGAO), year(DATA_DIPLOMA_INGRESSO_SERVICOPUBLICO)),
+            CORR_POSITIVA = COEFICIENTE_CORRELACAO > 0,
+            GRAU_CORR = get_grau_correlacao(abs(COEFICIENTE_CORRELACAO))) %>%
+  ungroup() %>%
+  select(DESCRICAO_CARGO, COEFICIENTE_CORRELACAO, CORR_POSITIVA, GRAU_CORR) -> dataset_ex01
+
 ### 2 ###
 ##
 ## - A partir do dataset do exercício anterior, selecione os 10 cargos de correlação mais forte (seja positiva ou negativa) e os 
@@ -30,3 +62,43 @@ library(lubridate)
 ##
 ### # ###
 
+dataset_ex01 %>%
+  arrange(desc(abs(COEFICIENTE_CORRELACAO))) %>%
+  head(10) -> top10_forte
+
+dataset_ex01 %>%
+  arrange(abs(COEFICIENTE_CORRELACAO)) %>%
+  head(10) -> top10_fraco
+
+(merge(top10_forte, top10_fraco, all = TRUE)) -> dataset_mais_fracos_fortes
+
+
+cargos <- dataset_mais_fracos_fortes %>% pull(DESCRICAO_CARGO)
+
+
+
+MODA_ORGSUP_LOTACAO <- salarios_final %>%
+  filter(DESCRICAO_CARGO %in% cargos) %>%
+  group_by(ORGSUP_LOTACAO) %>%
+    summarise(qtd = n()) %>%
+  ungroup() %>%
+    arrange(desc(qtd)) %>%
+    head(1) %>% 
+  select(ORGSUP_LOTACAO)
+
+MODA_ORGSUP_EXERCICIO <- salarios_final %>%
+  filter(DESCRICAO_CARGO %in% cargos) %>%
+  group_by(ORGSUP_EXERCICIO) %>%
+  summarise(qtd = n()) %>%
+  ungroup() %>%
+  arrange(desc(qtd)) %>%
+  head(1) %>% 
+  select(ORGSUP_EXERCICIO)
+
+print("Moda ORGSUP_LOTACAO: ")
+print(MODA_ORGSUP_LOTACAO)
+
+print("Moda ORGSUP_EXERCICIO: ")
+print(MODA_ORGSUP_EXERCICIO)
+
+print("Existe diferença entre as MODAS")

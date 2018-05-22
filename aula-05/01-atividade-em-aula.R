@@ -115,7 +115,7 @@ ted_main_final %>%
   summarise(qtd = n()) %>%
   ungroup() -> duracao_apresent
 
-quantile(duracao_apresent$qtd, probs = seq(0, 1, 0.25))
+#quantile(duracao_apresent$qtd, probs = seq(0, 1, 0.25))
 
 
 

@@ -52,7 +52,10 @@ summary(ted_main_final)
 
 # Verifique quais registros possuem a menor quantidade de línguas. Corrija para que possuam no mínimo 1 idioma.
 
-ted_main_final %>% filter(languages > 0) -> ted_main_final
+ted_main_final %>% 
+  filter(languages <= 0) %>%
+  mutate(languages = 1) %>%
+  select(languages)
   
   
 
@@ -108,20 +111,19 @@ ted_main_final %>%
 
 
 
-# Calcule os 4 quartis e o IQR da duração das apresentações. Liste as apresentações cuja duração supera 1.5 * o IQR + o terceiro quartil
+# Calcule os 4 quartis e o IQR da duração das apresentações. 
+# Liste as apresentações cuja duração supera 1.5 * o IQR + o terceiro quartil
+
+terceiroQ <- quantile(as.numeric(ted_main_final$duration, "seconds"))[3]
+iqrDuracao <- IQR(as.numeric(ted_main_final$duration, "seconds"))
 
 ted_main_final %>%
-  group_by(duration) %>%
-  summarise(qtd = n()) %>%
-  ungroup() -> duracao_apresent
-
-#quantile(duracao_apresent$qtd, probs = seq(0, 1, 0.25))
-
-
+  filter(as.numeric(duration, "seconds") > (1.5 * iqrDuracao + terceiroQ)) %>%
+  View()
 
 # Visualize os 10 quantis da quantidade de visualizações
 
-
+quantile(ted_main_final$views, probs = seq(0, 1, 0.1))
 
 
 # Compare as seguintes estatísticas descritivas da quantidade de visualizações:
@@ -131,22 +133,56 @@ ted_main_final %>%
 #   * Com base na média e na mediana, e na razão entre o IQR e o Desvio Absoluto da Mediana, 
 #     você conclui que as quantidades de visualização estão distribuidas de forma simétrica em torno da média?
 
+media_views <- mean(ted_main_final$views)
+mediana_views <- median(ted_main_final$views)
+desv_padrao_views <- sd(ted_main_final$views)
+desv_abs_med_views <- median(abs(ted_main_final$views - median(ted_main_final$views)))
+iqr_views <- IQR(ted_main_final$views)
 
+cat("A média (", media_views, ") é maior que a mediana (", mediana_views, ")")
+cat("O desvio padrão (", desv_padrao_views, ") é maior que o desvio absoluto da mediana (", desv_abs_med_views, ")")
+cat("O IQR é ", iqr_views/desv_abs_med_views, " vezes maior que o desvio absolto da mediana")
+print("Há mais quantidades de visualizações que estão abaixo da média.")
 
 
 # Calcule a média, o desvio padrão, a mediana e o IQR da quantidade de línguas dos seguintes grupos:
 #     * 10% de vídeos com maior número de visualizações
 #     * 10% de vídeos com menor número de visualizações
 
+dez_por_cento <- ted_main_final %>% count() * 0.1
+
+ted_main_final %>% 
+  arrange(views) %>%
+  head(dez_por_cento) -> mais_visualizacoes
+
+cat("Média de línguas dos mais visualizados: ", mean(mais_visualizacoes$languages)) 
+cat("Desvio padrão de línguas dos mais visualizados: ", sd(mais_visualizacoes$languages))
+cat("Mediana de línguas dos mais visualizados: ", median(mais_visualizacoes$languages))
+cat("IQR de línguas dos mais visualizados: ", IQR(mais_visualizacoes$languages)) 
 
 
+ted_main_final %>% 
+  arrange(desc(views)) %>%
+  head(dez_por_cento) -> menos_visualizacoes
 
-# Determine a quantidade de apresentações por evento cujo nome inicie com TED. Utilize a função str_detect para este filtro
+cat("Média de línguas dos menos visualizados: ", mean(menos_visualizacoes$languages)) 
+cat("Desvio padrão de línguas dos menos visualizados: ", sd(menos_visualizacoes$languages))
+cat("Mediana de línguas dos menos visualizados: ", median(menos_visualizacoes$languages))
+cat("IQR de línguas dos menos visualizados: ", IQR(menos_visualizacoes$languages)) 
+
+# Determine a quantidade de apresentações por evento cujo nome inicie com TED. 
+# Utilize a função str_detect para este filtro
+
+ted_main_final %>%
+  group_by(event) %>%
+  filter(str_detect(event, "TED.*")) %>%
+  summarise(qtd = n()) %>%
+  ungroup() %>%
+  View()
 
 
-
-
-# Determine, por evento cujo nome inicie com TED e que a quantidade de visualizações dos vídeos foi maior que a mediana calculada anteriormente.
+# Determine, por evento cujo nome inicie com TED e que a quantidade de visualizações dos vídeos foi maior 
+# que a mediana calculada anteriormente.
 #   * a quantidade de apresentações resultante do filtro, por evento
 #   * o ano do evento (utilizar o menor ano da data de publicação)
 #   * a quantidade média de línguas das apresentações
@@ -154,7 +190,17 @@ ted_main_final %>%
 #   * o coeficiente de variação da quantidade de línguas
 ### EXIBA SOMENTE OS EVENTOS COM MAIS DE 10 APRESENTAÇÕES
 
-
+ted_main_final %>%
+  group_by(event) %>%
+  filter(str_detect(event, "TED.*")) %>%
+  filter(views > media_views) %>%
+  summarise(qtd = n(), 
+            ano = min(published_date), 
+            media_linguas = mean(languages),
+            desv_padrao_linguas = sd(languages),
+            coef_var_linguas = sd(languages)/mean(languages)) %>%
+  ungroup() %>%
+  View()
 
 
 # Calcule e classifique as seguintes correlações

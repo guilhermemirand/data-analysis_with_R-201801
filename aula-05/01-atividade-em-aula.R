@@ -69,14 +69,11 @@ ted_main_final %>%
 
 
 # Crie um dataframe com a contagem de apresentações por ano de filmagem e visualize todo o seu conteúdo
-cont_apresentacoes <- 
-  ted_main_final %>% 
+  (ted_main_final %>% 
   mutate(ano_filmagem = year(film_date)) %>%
   group_by(ano_filmagem) %>%
     summarise(qtd = n()) %>%
-  ungroup()
-  
-cont_apresentacoes %>% View()
+  ungroup() -> cont_apresentacoes)
 
 
 
@@ -209,17 +206,59 @@ ted_main_final %>%
 #     * Quantidade de visualizações e Quantidade de Comentários
 #     * Quantidade de Comentários e Quantidade de línguas
 
+get_grau_correlacao <- function(x) {
+  abs_x = abs(x)
+  if (abs_x <= 0.3) {
+    "Desprezível"
+  } else if (abs_x <= 0.5) {
+    "Fraca"
+  } else if (abs_x <= 0.7) {
+    "Moderada"
+  } else if (abs_x <= 0.9) {
+    "Forte"
+  } else {
+    "Muito forte"
+  }
+}
 
+ted_main_final %>%
+  summarise(corr_views_languages = cor(views, languages),
+            class_views_languages = get_grau_correlacao(corr_views_languages),
+            corr_view_duration = cor(views, as.numeric(duration, "seconds")),
+            class_views_duration = get_grau_correlacao(corr_view_duration),
+            corr_views_comments = cor(views, comments),
+            class_views_comments = get_grau_correlacao(corr_views_comments),
+            corr_comments_languages = cor(comments, languages),
+            class_comments_languages = get_grau_correlacao(corr_comments_languages))
 
 
 # Descarte os vídeos cuja duração seja maior que 3 desvios padrões da média. Calcule novamente as 5 correlações solicitadas
+ted_main_final %>%
+  mutate(corte = 3 * sd(as.numeric(duration, "seconds")) + mean(as.numeric(duration, "seconds"))) %>%
+  filter(as.numeric(duration, "seconds") <= corte) %>%
+  summarise(corr_views_languages = cor(views, languages),
+            class_views_languages = get_grau_correlacao(corr_views_languages),
+            corr_view_duration = cor(views, as.numeric(duration, "seconds")),
+            class_views_duration = get_grau_correlacao(corr_view_duration),
+            corr_views_comments = cor(views, comments),
+            class_views_comments = get_grau_correlacao(corr_views_comments),
+            corr_comments_languages = cor(comments, languages),
+            class_comments_languages = get_grau_correlacao(corr_comments_languages))
 
 
 
+# Utilizando o data frame original, crie um dataframe com a mediana da duração dos vídeos por ano de filmagem. 
+# Calcule a correlação entre o ano e a mediana da duração e interprete o resultado
 
-# Utilizando o data frame original, crie um dataframe com a mediana da duração dos vídeos por ano de filmagem. Calcule a correlação entre o ano e a mediana da duração
-# e interprete o resultado
+ted_main %>%
+  mutate(duration = duration(duration, units = "seconds"),
+         film_date = as_datetime(film_date)) %>%
+  group_by(yearFilm = year(film_date)) %>%
+  summarise(mediana_duracao = median(duration))  %>%
+  ungroup() %>%
+  summarise(cor(yearFilm, mediana_duracao))
 
+print("A correlação entre o ano e a duração é fraca, portanto, não é seguro afirmar que existe alguma relação entre o ano e a duração do filme.")
 
 
 

@@ -156,7 +156,22 @@ ggplot( aes( x = year, y = languages )) +
 #' 
 #' > ATIVIDADE
 #' 
-#' Repetir os gráficos de pontos e de sumário utilizando o ano de publicação no eixo x e a duração no eixo y. Cuidado com a escala do eixo y!
+#' Repetir os gráficos de pontos e de sumário utilizando o ano de publicação no eixo x e a duração no eixo y. 
+#' Cuidado com a escala do eixo y!
+#' 
+
+ted_talks %>%
+mutate( year = year( published_date ),
+        duration_min = as.numeric(duration, "seconds") / 60) %>%
+  ggplot( aes( x = year, y = duration_min)) +
+  geom_point( alpha = .3 ) +
+  scale_x_continuous( breaks = seq( from = 2005, to = 2020, by = 2 )) +
+  scale_y_continuous( breaks = seq( from = 0, to = 90, by = 5)) +
+  labs( x = "Ano de publicação"
+        , y = "Duração (minutos)"
+        , title = "Evolução da duração em minutos dos vídeo por ano de publicação"
+        , caption = "Dados de TED Talks de https://www.kaggle.com/rounakbanik/ted-talks/data") +
+  theme_bw()
 #' 
 #' > FIM ATIVIDADE
 #' 
@@ -387,4 +402,17 @@ ggcorrplot(corr, hc.order = TRUE, type = "lower", lab = TRUE)
 #' 
 #' 3. Crie um histograma da quantidade de visualizações multifacetado por ano de publicação, restrito aos anos entre 2012 e 2017.
 #' 
+
+
+ted_talks %>%
+  mutate( year = year( published_date )) %>%
+  filter(year >= 2012 & year <= 2017) %>%
+  ggplot(aes( x = year )) +
+  geom_histogram(aes(weight = views/1000000), binwidth = 0.5) +
+  scale_x_continuous( breaks = 2012:2017 ) +
+  scale_y_continuous( breaks = seq(from = 0, to = 550, by = 50 )) +
+  #scale_y_continuous(labels = scales::format_format(big.mark = ".", decimal.mark=",", scientific = FALSE)) +
+  ylab("visualizações (em milhões)") +
+  xlab("Ano de publicação") +
+  theme_bw()
 #' > FIM ATIVIDADE

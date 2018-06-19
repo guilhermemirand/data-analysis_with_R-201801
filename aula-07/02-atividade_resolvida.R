@@ -10,7 +10,7 @@ br_height <-
 br_height %>%
   filter( year == 1979, Sex == "Men" ) %>%
   select( height, lo_95, hi_95 ) %>%
-  mutate( height_ratio = 181 / height, heigh_in_ic = between( 181, lo_95, hi_95 ))
+  mutate( height_ratio = 171 / height, heigh_in_ic = between( 171, lo_95, hi_95 ))
 
 
 # 2

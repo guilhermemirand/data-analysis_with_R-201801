@@ -89,3 +89,6 @@ estatisticas_descritivas %>%
   spread( estatistica_orgao, valor ) %>% 
   View()
 
+#'
+#'A média de salário de mesmo tente a ser maiores
+#'Devida a diferença do Desvio padrão mostra que a dispersão dos salários do mesmo tende a ser maior

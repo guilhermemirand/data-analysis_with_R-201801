@@ -171,3 +171,4 @@ ted_talks %>%
   geom_histogram( bins = 1000 ) +
   facet_wrap( ~ ano_publicacao, ncol = 3 ) +
   theme_bw()
+
